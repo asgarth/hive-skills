@@ -4,21 +4,12 @@ description: Hive blockchain CLI skill for querying accounts, blocks, posts, and
 homepage: https://github.com/asgarth/hive-tx-cli
 metadata:
   {
-    "openclaw":
+    'openclaw':
       {
-        "emoji": "🐝",
-        "requires": { "bins": ["hive"] },
-        "install":
-          [
-            {
-              "id": "npm",
-              "kind": "node",
-              "package": "@peakd/hive-tx-cli",
-              "bins": ["hive"],
-              "label": "Install hive-tx-cli (npm)",
-            },
-          ],
-      },
+        'emoji': '🐝',
+        'requires': { 'bins': ['hive'] },
+        'install': [{ 'id': 'npm', 'kind': 'node', 'package': '@peakd/hive-tx-cli', 'bins': ['hive'], 'label': 'Install hive-tx-cli (npm)' }]
+      }
   }
 ---
 
@@ -52,7 +43,7 @@ hive account peakd             # Query an account
 
 - **Posting key**: Required for voting, commenting, posting, uploading images
 - **Active key**: Required for transfers and high-privilege operations
-- Keys stored in `~/.hive-cli/config.json` with 600 permissions
+- Keys stored in `~/.hive-tx-cli/config.json` with 600 permissions
 - Environment variables override config file values
 
 ```bash
@@ -116,7 +107,6 @@ Target ~300kb output size for images above 500kb by reducing dimensions and slig
 ```bash
 hive upload --file ./path/to/image.jpg
 hive upload --file ./image.png --host https://images.ecency.com
-hive upload --file ./image.jpg --account myaccount
 ```
 
 ## Global Options
@@ -124,14 +114,11 @@ hive upload --file ./image.jpg --account myaccount
 ```bash
 --node <url>                   # Override Hive node
 hive --node https://api.hive.blog account peakd
-
---account <name>               # Override account for this command
-hive --account myaccount vote --author author --permlink permlink --weight 100
 ```
 
 ## Configuration File
 
-`~/.hive-cli/config.json` (permissions 600):
+`~/.hive-tx-cli/config.json` (permissions 600):
 
 ```json
 {
@@ -160,7 +147,7 @@ hive vote --author author --permlink permlink --weight 100
 
 - Verify keys are private keys (not public keys)
 - Check account name matches exactly
-- Ensure config file permissions: `chmod 600 ~/.hive-cli/config.json`
+- Ensure config file permissions: `chmod 600 ~/.hive-tx-cli/config.json`
 
 ### Node connection issues
 
