@@ -7,6 +7,7 @@ Generate images from text prompts using Venice.ai API.
 Uses cost-effective defaults:
 - Model: z-image-turbo (fast and inexpensive)
 - Aspect Ratio: 16:9 (widescreen format)
+- No watermark (hide_watermark: True)
 
 For premium quality, use: --model nano-banana-pro
 
@@ -39,6 +40,7 @@ def generate_image(
     seed: Optional[int] = None,
     format: str = "png",
     variants: int = 1,
+    hide_watermark: bool = True,
     api_key: Optional[str] = None
 ):
     """Generate an image using Venice.ai API."""
@@ -56,7 +58,8 @@ def generate_image(
         "cfg_scale": cfg_scale,
         "format": format,
         "variants": variants,
-        "safe_mode": False
+        "safe_mode": False,
+        "hide_watermark": hide_watermark
     }
     
     if aspect_ratio:
@@ -102,6 +105,7 @@ def main():
     parser.add_argument("--seed", type=int, help="Random seed for reproducibility")
     parser.add_argument("--format", default="png", choices=["png", "jpeg", "webp"], help="Output format")
     parser.add_argument("--variants", type=int, default=1, help="Number of variants (1-4)")
+    parser.add_argument("--watermark", action="store_true", help="Show Venice watermark (default: hidden)")
     
     args = parser.parse_args()
     
@@ -118,7 +122,8 @@ def main():
             cfg_scale=args.cfg_scale,
             seed=args.seed,
             format=args.format,
-            variants=args.variants
+            variants=args.variants,
+            hide_watermark=not args.watermark
         )
         print(f"\nSuccessfully generated {len(files)} image(s)")
     except Exception as e:

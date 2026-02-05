@@ -30,7 +30,8 @@ response = requests.post(
         "prompt": "A serene canal in Venice at sunset, golden hour lighting",
         "aspect_ratio": "16:9",  # Default aspect ratio
         "width": 1024,
-        "height": 576
+        "height": 576,
+        "hide_watermark": True  # No watermark on paid generations
     }
 )
 
@@ -75,6 +76,7 @@ Check current pricing: https://docs.venice.ai/models/image
 - `resolution` - For supported models: `1K`, `2K`, `4K`
 - `aspect_ratio` - e.g., `1:1`, `16:9`, `9:16`
 - `style_preset` - Apply predefined styles
+- `hide_watermark` - Set to `True` to hide Venice watermark (recommended)
 
 **Example (Cost-Effective - Default):**
 ```python
@@ -87,7 +89,8 @@ response = requests.post(
         "aspect_ratio": "16:9",  # Default widescreen format
         "negative_prompt": "blurry, low quality, distorted",
         "cfg_scale": 7.5,
-        "format": "png"
+        "format": "png",
+        "hide_watermark": True  # No watermark
     }
 )
 ```
@@ -104,7 +107,8 @@ response = requests.post(
         "resolution": "2K",
         "negative_prompt": "blurry, low quality, distorted",
         "cfg_scale": 7.5,
-        "format": "png"
+        "format": "png",
+        "hide_watermark": True  # No watermark
     }
 )
 ```
@@ -463,7 +467,8 @@ def create_product_shot(product_description, api_key):
             "model": "z-image-turbo",  # Fast, cost-effective option
             "prompt": f"Professional product photography, white background, studio lighting, {product_description}",
             "aspect_ratio": "16:9",  # Default widescreen format
-            "cfg_scale": 7.5
+            "cfg_scale": 7.5,
+            "hide_watermark": True  # No watermark
         }
     )
     
@@ -506,7 +511,8 @@ def generate_variations(base_prompt, styles, api_key):
                 "model": "nano-banana-pro",
                 "prompt": base_prompt,
                 "style_preset": style,
-                "variants": 1
+                "variants": 1,
+                "hide_watermark": True  # No watermark
             }
         )
         
