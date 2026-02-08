@@ -6,7 +6,6 @@ metadata:
   {
     'openclaw':
       {
-        'emoji': '🐝',
         'requires': { 'bins': ['hive'] },
         'install': [{ 'id': 'npm', 'kind': 'node', 'package': '@peakd/hive-tx-cli', 'bins': ['hive'], 'label': 'Install hive-tx-cli (npm)' }]
       }
