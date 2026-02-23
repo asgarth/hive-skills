@@ -1,6 +1,6 @@
 ---
 name: hive
-description: Hive blockchain CLI skill for querying accounts, blocks, posts, and raw API calls, uploading images, plus broadcasting votes, posts, comments, transfers, and custom JSON via hive-tx-cli.
+description: Hive blockchain CLI skill for hive-tx-cli: query accounts/content/RC/feed/replies, upload images, and broadcast publish/reply/edit/vote/transfer/community/social/profile/reward/custom-json operations with correct key usage.
 homepage: https://github.com/asgarth/hive-tx-cli
 metadata:
   {
@@ -12,9 +12,9 @@ metadata:
   }
 ---
 
-# Hive CLI 🐝
+# Hive CLI
 
-Use the `hive` CLI (hive-tx-cli) to query the Hive blockchain, upload images, and broadcast transactions with the correct key type.
+Use `hive` (`@peakd/hive-tx-cli`) to query Hive state and broadcast common operations.
 
 ## Install
 
@@ -36,14 +36,15 @@ bunx @peakd/hive-tx-cli account peakd
 hive config                    # Interactive configuration
 hive status                    # Check configuration status
 hive account peakd             # Query an account
+hive vote --url https://peakd.com/@author/permlink --weight 100
 ```
 
 ## Authentication & Keys
 
-- **Posting key**: Required for voting, commenting, posting, uploading images
-- **Active key**: Required for transfers and high-privilege operations
+- **Posting key**: publish/reply/edit/delete-comment/vote/follow/community subscribe/reblog/claim/custom-json(basic)/upload
+- **Active key**: transfer/delegate/profile update/custom-json with `--required-active`, and raw active broadcasts
 - Keys stored in `~/.hive-tx-cli/config.json` with 600 permissions
-- Environment variables override config file values
+- Environment variables override config values
 
 ```bash
 hive config                    # Interactive setup
@@ -56,37 +57,58 @@ hive config set node <url>
 hive config get account
 ```
 
+### Environment Variables
+
+```bash
+export HIVE_ACCOUNT="your-username"
+export HIVE_POSTING_KEY="your-posting-private-key"
+export HIVE_ACTIVE_KEY="your-active-private-key"
+export HIVE_JSON_OUTPUT=1      # Machine-friendly output + spinner disabled
+```
+
 ## Query Commands
 
 ```bash
-hive account <username>        # Account information
-hive props                     # Dynamic global properties
-hive block <number>            # Block by number
-hive content <author> <permlink> # Post/comment content
-hive call database_api get_accounts '[["username"]]' # Raw API call
+# Account/state
+hive account <username>
+hive balance <username>
+hive rc <username>
+hive props
+hive block <number>
+
+# Content (author/permlink or URL)
+hive content <author> <permlink>
+hive content https://peakd.com/@author/permlink
+hive replies <author> <permlink>
+hive replies https://peakd.com/@author/permlink
+hive feed <account> --limit 10
+
+# Raw API
+hive call database_api get_accounts '[["username"]]'
+hive call condenser_api get_content_replies '["author","permlink"]' --raw
 ```
 
 ## Broadcast Commands
 
-### Voting
+### Publish, Reply, Edit, Delete
 
 ```bash
-hive vote --author <author> --permlink <permlink> --weight 100
+hive publish --permlink my-post --title "My Post" --body "Body" --tags "hive,cli"
+hive publish --permlink my-post --title "My Post" --body-file ./post.md --metadata '{"app":"hive-tx-cli"}'
+hive publish --permlink my-reply --title "Re" --body "Reply" --parent-url https://peakd.com/@author/permlink
+hive publish --permlink my-post --title "My Post" --body "Body" --burn-rewards
+hive publish --permlink my-post --title "My Post" --body "Body" --beneficiaries '[{"account":"foo","weight":1000}]'
+
+hive reply <parent-author> <parent-permlink> --body "Nice post" --wait
+hive edit <author> <permlink> --body-file ./updated.md --tags "hive,update"
+hive delete-comment --url https://peakd.com/@author/permlink --wait
 ```
 
-### Posts & Comments
+Notes:
 
-**Body format**: Post body must be in Markdown format.
-
-**Image workflow**: If the post contains images, upload them first using `hive upload`, then insert the returned URLs into the post body before publishing.
-
-```bash
-# Create a post
-hive post --permlink my-post --title "My Post" --body "Content" --tags "hive,blockchain"
-
-# Create a reply
-hive comment --permlink my-reply --body "Comment" --parent-author <author> --parent-permlink <permlink>
-```
+- `publish` aliases: `post`, `comment`
+- `publish` requires `--title`; use `reply` for standard replies
+- `--wait` is available on supported commands to wait for tx confirmation
 
 #### Post Metadata
 
@@ -121,86 +143,72 @@ hive post --permlink my-post --title "My Post" --body "Content" --tags "hive,ai"
   --metadata '{"app":"hive-tx-cli/2026.1.1","description":"A post about Hive and AI tools","image":["https://example.com/image.jpg"],"ai_tools":{"writing_edit":true}}'
 ```
 
-### Transfers
+### Vote, Transfer, Custom JSON, Raw
 
 ```bash
-hive transfer --to <recipient> --amount "1.000 HIVE" --memo "Thanks!"
-hive transfer --to <recipient> --amount "1.000 HBD" --memo "Payment" --token HBD
+hive vote --url https://peakd.com/@author/permlink --weight 100 --wait
+hive transfer --to <recipient> --amount "1.000 HIVE" --memo "Thanks" --wait
+hive custom-json --id <app-id> --json '{"key":"value"}'
+hive custom-json --id <app-id> --json '{"key":"value"}' --required-active myaccount --wait
+hive broadcast '[{"type":"vote","value":{"voter":"me","author":"you","permlink":"post","weight":10000}}]' --key-type posting --wait
 ```
 
-### Custom JSON & Raw Operations
+### Social and Community
 
 ```bash
-hive custom-json --id <app-id> --json '{"key":"value"}'
-hive broadcast '["vote",{"voter":"me","author":"you","permlink":"post","weight":10000}]' --key-type posting
+hive follow <account>
+hive unfollow <account>
+hive mute <account>
+hive unmute <account>
+hive reblog --author <author> --permlink <permlink>
+
+hive community search peakd
+hive community info hive-12345
+hive community subscribers hive-12345
+hive community subscribe hive-12345
+hive community unsubscribe hive-12345
+```
+
+### Rewards and Profile
+
+```bash
+hive claim
+hive delegate <account> "100 HP"
+hive profile update --name "My Name" --about "Hive user" --location "Earth"
+```
+
+## Global Options
+
+```bash
+hive --account myaccount vote --author author --permlink permlink --weight 100
+hive --node https://api.hive.blog account peakd
 ```
 
 ## Image Uploads
 
-If tools are available to resize or compress images, do so before uploading.
-Target ~300kb output size for images above 500kb by reducing dimensions and slightly lowering quality.
+If possible, resize/compress large images before upload.
 
 ```bash
 hive upload --file ./path/to/image.jpg
 hive upload --file ./image.png --host https://images.ecency.com
 ```
 
-## Global Options
-
-```bash
---node <url>                   # Override Hive node
-hive --node https://api.hive.blog account peakd
-```
-
-## Configuration File
-
-`~/.hive-tx-cli/config.json` (permissions 600):
-
-```json
-{
-  "account": "your-username",
-  "postingKey": "your-posting-private-key",
-  "activeKey": "your-active-private-key",
-  "node": "https://api.hive.blog"
-}
-```
-
-Never commit private keys to version control.
-
-## Environment Variables
-
-```bash
-export HIVE_ACCOUNT="your-username"
-export HIVE_POSTING_KEY="your-posting-private-key"
-export HIVE_ACTIVE_KEY="your-active-private-key"
-
-hive vote --author author --permlink permlink --weight 100
-```
+Returns JSON with the uploaded URL.
 
 ## Troubleshooting
 
-### Authentication errors
-
-- Verify keys are private keys (not public keys)
-- Check account name matches exactly
-- Ensure config file permissions: `chmod 600 ~/.hive-tx-cli/config.json`
+- Auth errors: verify account + private keys, then run `hive status`
+- Key mismatch: posting vs active operations are different; switch key type/command
+- URL parsing issues: pass explicit `--author` + `--permlink` instead of `--url`
+- Broadcast uncertainty: add `--wait` to commands that support it
+- Script mode: set `HIVE_JSON_OUTPUT=1` to avoid spinner/UI text
 
 ### Node connection issues
 
 - Try different node: `hive config set node https://api.hiveworks.com`
 - Check network connectivity
 
-### Transaction failures
-
-- Ensure sufficient Resource Credits (stake HIVE for RC)
-- Use correct key type (posting vs active) for the operation
-- Start with `hive status` to diagnose
-
 ## References
 
 - Hive docs: https://developers.hive.io/
 - hive-tx-cli: https://github.com/asgarth/hive-tx-cli
-
----
-
-**TL;DR**: Query with `hive account/block/content`. Broadcast with `hive vote/post/comment/transfer/custom-json`. Upload with `hive upload`. Configure keys via `hive config`. 🐝
