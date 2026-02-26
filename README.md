@@ -4,9 +4,9 @@ This repository contains AI agent skills that extend the capabilities of your AI
 
 ## Available Skills
 
-`⚠️ Use this skill with a dedicated AI agent Hive account. Never share your Active key ⚠️`
+- **hive**: Hive blockchain CLI for querying accounts, content, RC, feed, replies, and broadcasting operations (publish, reply, edit, vote, transfer, etc.).
 
-- **hive**: Hive blockchain packed in an AI agent friendly skill.
+- **venice-ai**: Generate and manipulate images and videos using Venice.ai's privacy-first, uncensored AI API.
 
 ## Installation
 
@@ -14,4 +14,5 @@ To add skills to your AI agent, run:
 
 ```bash
 npx skills add https://github.com/asgarth/hive-skills --skill hive
+npx skills add https://github.com/asgarth/hive-skills --skill venice-ai
 ```
