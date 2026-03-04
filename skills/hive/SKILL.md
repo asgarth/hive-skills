@@ -2,6 +2,19 @@
 name: hive
 description: Hive blockchain CLI skill for hive-tx-cli: query accounts/content/RC/feed/replies, upload images, and broadcast publish/reply/edit/vote/transfer/community/social/profile/reward/custom-json operations with correct key usage.
 homepage: https://github.com/asgarth/hive-tx-cli
+version: "2026.3.1"
+tags: [blockchain, hive, cli, broadcasting]
+requirements:
+  - hive
+  - Node.js >= 22.0.0
+  - npm/pnpm/bun for installation
+triggers:
+  - "Broadcast Hive blockchain operations"
+  - "Post content to Hive blockchain"
+  - "Query Hive account or content data"
+  - "Transfer HIVE/HP on Hive"
+  - "Vote on Hive posts"
+profile: "binary-first"
 metadata:
   {
     'openclaw':
@@ -13,6 +26,8 @@ metadata:
 ---
 
 # Hive CLI
+
+The `hive` CLI (`@peakd/hive-tx-cli`) is the single entrypoint for this skill. All functionality is accessed through its subcommands. Do not create wrapper scripts that only duplicate CLI invocations.
 
 Use `hive` (`@peakd/hive-tx-cli`) to query Hive state and broadcast common operations.
 
@@ -30,6 +45,49 @@ bunx @peakd/hive-tx-cli account peakd
 
 - Node.js >= 22.0.0
 
+## When to Use
+
+Use this skill when you need to:
+
+- Query Hive blockchain state (accounts, content, RC, feed, rewards)
+- Broadcast operations (post, reply, vote, transfer, follow, custom-json)
+- Upload images to Hive's image hosting
+- Manage community subscriptions
+- Claim rewards or delegate HP
+
+## When Not to Use
+
+Do **not** use this skill when:
+
+- Simple read-only queries where raw API calls are faster (use `hive call` directly)
+- Operations requiring hardware wallet signing (not supported)
+- High-frequency trading scenarios (use specialized tools)
+- Operations on chains other than Hive (e.g., Hive Engine tokens require different tools)
+
+## Workflow
+
+Follow this general workflow for safe operations:
+
+1. **Configure keys**: Run `hive config` interactively or set environment variables (`HIVE_ACCOUNT`, `HIVE_POSTING_KEY`, `HIVE_ACTIVE_KEY`)
+   ```bash
+   hive config                    # Interactive setup
+   export HIVE_ACCOUNT="your-username"
+   export HIVE_POSTING_KEY="your-posting-private-key"
+   ```
+2. **Test with query/dry-run**: Verify configuration with `hive status`, query the target account, or use read-only commands first
+   ```bash
+   hive status                    # Check configuration status
+   hive account peakd             # Query target account
+   ```
+3. **Execute operation**: Run the broadcast command (add `--wait` for commands that support it)
+   ```bash
+   hive vote --url https://peakd.com/@author/permlink --weight 100 --wait
+   ```
+4. **Verify**: Confirm the operation succeeded via returned transaction ID or by querying the updated state
+   ```bash
+   hive content author permlink   # Verify post appeared
+   ```
+
 ## Quick Start
 
 ```bash
@@ -37,6 +95,39 @@ hive config                    # Interactive configuration
 hive status                    # Check configuration status
 hive account peakd             # Query an account
 hive vote --url https://peakd.com/@author/permlink --weight 100
+```
+
+## Common Use Cases
+
+### Post a new article
+
+```bash
+hive publish --permlink my-article --title "My Title" --body "Content here" --tags "hive,development" --wait
+hive content your-account my-article  # Verify it appeared
+```
+
+### Reply to a post
+
+```bash
+hive reply author permlink --body "Great post!" --wait
+```
+
+### Vote on content
+
+```bash
+hive vote --url https://peakd.com/@author/permlink --weight 100 --wait
+```
+
+### Transfer HIVE
+
+```bash
+hive transfer --to recipient --amount "1.000 HIVE" --memo "Thanks!" --wait
+```
+
+### Claim rewards
+
+```bash
+hive claim --wait
 ```
 
 ## Authentication & Keys
@@ -65,6 +156,28 @@ export HIVE_POSTING_KEY="your-posting-private-key"
 export HIVE_ACTIVE_KEY="your-active-private-key"
 export HIVE_JSON_OUTPUT=1      # Machine-friendly output + spinner disabled
 ```
+
+## Guardrails & Warnings
+
+> **⚠️ Active Key Operations**: Commands using `--required-active` or the active key can transfer funds or modify account settings. These operations are irreversible.
+
+> **⚠️ Transfer Risks**: Hive transfers cannot be reversed. Always verify the recipient address and amount before executing.
+
+> **⚠️ Memo Privacy**: Memos are publicly visible on the blockchain. Do not include sensitive information in memos.
+
+> **⚠️ Key Exposure**: Never commit private keys to version control. Use environment variables or a secure config file with 600 permissions.
+
+> **⚠️ Resource Credits (RC)**: Broadcasting operations consumes RC. Ensure sufficient RC before bulk operations. Check with `hive rc <account>`.
+
+### Pre-flight Checklist
+
+Before broadcasting any operation:
+
+- [ ] Account name is correct (check with `hive account <name>`)
+- [ ] Key type matches operation (posting vs active)
+- [ ] Sufficient RC: `hive rc <account>` shows > 0
+- [ ] Amounts/memos verified (transfers cannot be undone)
+- [ ] Using `--wait` for commands that support it
 
 ## Query Commands
 
@@ -195,13 +308,51 @@ hive upload --file ./image.png --host https://images.ecency.com
 
 Returns JSON with the uploaded URL.
 
+## Output Contract
+
+When `HIVE_JSON_OUTPUT=1` is set, commands return machine-friendly JSON output.
+
+### Success Output
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "txId": "abc123..."
+}
+```
+
+### Error Output
+
+```json
+{
+  "success": false,
+  "error": "Error message",
+  "code": "ERROR_CODE"
+}
+```
+
+### Stderr Conditions
+
+- Warnings and informational messages may be printed to stderr
+- Progress spinners are disabled in JSON mode
+
 ## Troubleshooting
 
-- Auth errors: verify account + private keys, then run `hive status`
-- Key mismatch: posting vs active operations are different; switch key type/command
-- URL parsing issues: pass explicit `--author` + `--permlink` instead of `--url`
-- Broadcast uncertainty: add `--wait` to commands that support it
-- Script mode: set `HIVE_JSON_OUTPUT=1` to avoid spinner/UI text
+### Common Errors
+
+| Error                         | Cause                        | Resolution                                                    |
+| ----------------------------- | ---------------------------- | ------------------------------------------------------------- |
+| `Invalid key` or `Auth error` | Wrong key type for operation | Posting key for publish/vote/follow; Active key for transfers |
+| `Insufficient RC`             | Not enough Resource Credits  | Wait for RC regeneration or delegate HP                       |
+| `Transaction expired`         | Node timing issue            | Retry with `--wait` or switch nodes                           |
+| `Account does not exist`      | Typo in username             | Verify account name with `hive account <name>`                |
+
+### Recovery Steps
+
+1. **Auth failures**: Verify keys with `hive status`, check key type matches operation
+2. **Broadcast uncertainty**: Always use `--wait` to wait for tx confirmation
+3. **RC exhaustion**: Check with `hive rc <account>`, delegate from account with HP
 
 ### Node connection issues
 
