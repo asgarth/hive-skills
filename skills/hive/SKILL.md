@@ -3,7 +3,7 @@ name: hive
 description: Hive blockchain CLI skill for hive-tx-cli: query accounts/content/RC/feed/replies, upload images, and broadcast publish/reply/edit/vote/transfer/community/social/profile/reward/custom-json operations with correct key usage.
 homepage: https://github.com/asgarth/hive-tx-cli
 version: "2026.3.1"
-tags: [blockchain, hive, cli, broadcasting]
+tags: ["blockchain", "hive", "cli", "broadcasting"]
 requirements:
   - hive
   - Node.js >= 22.0.0

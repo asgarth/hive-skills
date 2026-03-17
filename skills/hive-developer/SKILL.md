@@ -2,7 +2,7 @@
 name: hive-developer
 description: Build and debug Hive blockchain software with `hive-tx` in JavaScript/TypeScript, including node failover, quorum reads, key-safe signing, and status-aware broadcasting for wallet, content, and custom_json flows.
 version: "2026.3.1"
-tags: [hive, blockchain, typescript, hive-tx, transactions]
+tags: ["hive", "blockchain", "typescript", "hive-tx", "transactions"]
 requirements:
   - Node.js >= 22
   - `hive-tx` npm package
