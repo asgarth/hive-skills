@@ -1,0 +1,4 @@
+interface:
+  display_name: "NPM Scan"
+  short_description: "Scan npm, pnpm, and yarn trees for affected versions"
+  default_prompt: "Use $npm-scan to scan a folder recursively for an affected npm package version."
